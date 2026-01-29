@@ -1,0 +1,188 @@
+Enter<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>العب ويه فرح وعباس</title>
+<style>
+body{
+    margin:0;
+    font-family: "Cairo", sans-serif;
+    background:#ffc0cb;
+    color:#000;
+}
+.container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.card{
+    background:rgba(255,255,255,0.6);
+    border:3px solid red;
+    padding:30px;
+    border-radius:20px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+}
+h1{
+    margin-bottom:20px;
+}
+input, textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:10px;
+    border:1px solid #aaa;
+    font-size:16px;
+}
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:12px;
+    background:white;
+    color:black;
+    font-size:16px;
+    cursor:pointer;
+    margin-top:10px;
+}
+.options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+.option{
+    background:rgba(255,255,255,0.7);
+    padding:20px;
+    border-radius:15px;
+    cursor:pointer;
+}
+.hidden{display:none;}
+.message-box{
+    background:rgba(255,255,255,0.6);
+    padding:20px;
+    border-radius:15px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- شاشة الباسورد -->
+<div class="container" id="login">
+    <div class="card">
+        <h1>العب ويه فرح وعباس</h1>
+        <input type="password" id="password" placeholder="حط الباسورد عزيزي">
+        <p id="hint" style="color:red;"></p>
+        <button onclick="checkPass()">دخول</button>
+    </div>
+</div>
+
+<!-- القائمة -->
+<div class="container hidden" id="menu">
+    <div class="card">
+        <div class="options">
+            <div class="option" onclick="openGame('game1')">نبدل الأشياء حسب اللون</div>
+            <div class="option" onclick="openGame('game2')">اعرف المكان من الدلالة</div>
+            <div class="option" onclick="openGame('game3')">لو تعرفني / لو تفهمني</div>
+            <div class="option" onclick="openGame('love')">رسالة مخصوصة لفرح</div>
+        </div>
+    </div>
+</div>
+
+<!-- الألعاب -->
+<div class="container hidden" id="game">
+    <div class="card">
+        <div id="formArea"></div>
+        <button onclick="backMenu()">رجوع</button>
+    </div>
+</div>
+
+<script>
+const TOKEN = "7554612157:AAGbvgb7n5Q3dEFf_8_HWwAOKKVqkeghWxQ";
+const CHAT_ID = "7554612157";
+
+function checkPass(){
+    const pass = document.getElementById("password").value;
+    if(pass === "20062009"){
+        login.classList.add("hidden");
+        menu.classList.remove("hidden");
+    }else{
+        hint.innerText = "التلميح: مواليد عباس وفرح";
+    }
+}
+
+function backMenu(){
+    game.classList.add("hidden");
+    menu.classList.remove("hidden");
+}
+
+function openGame(type){
+    menu.classList.add("hidden");
+    game.classList.remove("hidden");
+
+    if(type === "love"){
+        formArea.innerHTML = `
+        <div class="message-box" id="loveText"></div>
+        <button onclick="restartText()">إعادة</button>
+        `;
+        startTyping();
+        return;
+    }
+
+    let label2 = "";
+    let title = "";
+
+    if(type==="game1"){title="نبدل الأشياء حسب اللون"; label2="حط الشيء الي اتفقنا على لونه";}
+    if(type==="game2"){title="اعرف المكان من الدلالة"; label2="اكتبلي 3 احتمالات للمكان المطلوب";}
+    if(type==="game3"){title="لو تعرفني / لو تفهمني"; label2="اكتب جوابك حسب فهمك الي";}
+
+    formArea.innerHTML = `
+    <h3>${title}</h3>
+    <input id="name" placeholder="حط اسمك">
+    <input id="field2" placeholder="${label2}">
+    <textarea id="msg" placeholder="رساله الي يجميل"></textarea>
+    <button onclick="send('${type}')">إرسال</button>
+    `;
+}
+
+function send(type){
+    const name = document.getElementById("name").value;
+    const f2 = document.getElementById("field2").value;
+    const msg = document.getElementById("msg").value;
+
+    let text = `اسم الشخص: ${name}\n`;
+
+    if(type==="game1") text += `الغرض الي انطاه: ${f2}\n`;
+    if(type==="game2") text += `احتمالات المكان: ${f2}\n`;
+    if(type==="game3") text += `جواب الجميل(فهمه الك): ${f2}\n`;
+
+    text += `رساله الك: ${msg}`;
+
+    fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({chat_id:CHAT_ID,text:text})
+    });
+
+    alert("تم الإرسال ❤️");
+}
+
+const loveMessage = `فرح ماطول وصلنا لنهايه لعبتنا احب اكلج انو تعبي وروحي وحياتي كلها الج ملكتيني انا وكلشي يخصني احبج لا ما احبج انتي الحب قليل شوصفج وشكول عليج انتي الفرصه الي تجي مره بلعمر حبج الي... احبجج بابي مححححح💋💋`;
+
+let i=0;
+function startTyping(){
+    i=0;
+    loveText.innerHTML="";
+    const interval = setInterval(()=>{
+        loveText.innerHTML += loveMessage.charAt(i);
+        i++;
+        if(i>=loveMessage.length) clearInterval(interval);
+    },60);
+}
+function restartText(){ startTyping(); }
+</script>
+
+</body>
+</html>
